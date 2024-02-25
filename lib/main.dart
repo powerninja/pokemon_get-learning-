@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 void main() {
   runApp(const MyApp());
@@ -24,19 +25,23 @@ class PokemonIllustrated extends StatefulWidget {
 }
 
 class _PokemonIllustratedState extends State<PokemonIllustrated> {
+  final _randomId = math.Random().nextInt(151).toString();
+  var _pokemonName = '';
   var _pokemonPicFront =
       'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png';
 
-  Future<void> fetchPokemon(String searchNum) async {
-    searchNum = searchNum.isEmpty ? '1' : searchNum;
-    Response res =
-        await Dio().get('https://pokeapi.co/api/v2/pokemon/${searchNum}/');
-    // print(res.data);
-    print(res.data['name']);
-    print(res.data['forms'][0]['url']);
-    Response res2 = await Dio().get(res.data['forms'][0]['url']);
-    print(res2.data['sprites']['front_default']);
-    _pokemonPicFront = res2.data['sprites']['front_default'];
+  Future<void> fetchPokemon() async {
+    Response res = await Dio()
+        .get('https://pokeapi.co/api/v2/pokemon-species/$_randomId/');
+
+    for (var item in res.data['names']) {
+      item['language']['name'] == 'ja-Hrkt'
+          ? _pokemonName = item['name']
+          : null;
+    }
+
+    _pokemonPicFront =
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$_randomId.png';
 
     // 画面を更新する
     setState(() {});
@@ -47,33 +52,21 @@ class _PokemonIllustratedState extends State<PokemonIllustrated> {
   void initState() {
     super.initState();
     // 画像を取得する処理を呼び出す
-    fetchPokemon('1');
+    fetchPokemon();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: TextFormField(
-          decoration: const InputDecoration(
-            // 入力フォームの背景色
-            fillColor: Colors.white,
-            // 入力フォームの背景色を変更するためのプロパティ
-            filled: true,
-            // 入力フォームのヒントメッセージ
-            hintText: 'SearchNumPokemon',
-          ),
-          // キーボードのエンターキーを押した時の処理
-          onFieldSubmitted: (String value) {
-            // 画像を取得する処理を呼び出す
-            fetchPokemon(value);
-          },
-        ),
+        title: Text('No: $_randomId $_pokemonName'),
       ),
       body: Center(
         child: Column(
           children: [
             Image.network(_pokemonPicFront),
+            Text(
+                '総合運： 今日のあなたは、自分の能力を最大限に発揮することができるでしょう。しかし、その力をどのように使うかは慎重に考える必要があります。力は責任を伴うため、自分の行動が他人にどのような影響を与えるかを常に意識してください。'),
           ],
         ),
       ),
